@@ -6,6 +6,36 @@ const CONFIG = {
     historyKey: 'l_pilot_history_'
 };
 
+// --- Storage Helper (chrome.storage with localStorage fallback) ---
+const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+
+const storage = {
+    get: (keys, callback) => {
+        if (isExtension) {
+            chrome.storage.local.get(keys, callback);
+        } else {
+            // localStorage fallback
+            const result = {};
+            keys.forEach(key => {
+                const data = localStorage.getItem(key);
+                if (data) result[key] = JSON.parse(data);
+            });
+            callback(result);
+        }
+    },
+    set: (data, callback) => {
+        if (isExtension) {
+            chrome.storage.local.set(data, callback);
+        } else {
+            // localStorage fallback
+            Object.keys(data).forEach(key => {
+                localStorage.setItem(key, JSON.stringify(data[key]));
+            });
+            if (callback) callback();
+        }
+    }
+};
+
 // --- Boot Sequence ---
 const bootText = [
     "SYSTEM INITIALIZING...",
@@ -70,15 +100,15 @@ function getTodayKey() {
 
 // --- Data Management ---
 function loadData() {
-    chrome.storage.local.get([CONFIG.storageKey], (result) => {
+    storage.get([CONFIG.storageKey], (result) => {
         if (result[CONFIG.storageKey]) {
             missions = result[CONFIG.storageKey].missions || missions;
-            renderMissions();
         }
+        renderMissions();
     });
 
     // Check Orbit Status & Milestones
-    chrome.storage.local.get(['l_pilot_orbit_status', 'l_pilot_milestones'], (result) => {
+    storage.get(['l_pilot_orbit_status', 'l_pilot_milestones'], (result) => {
         // Orbit Status
         if (result.l_pilot_orbit_status) {
             const orbitDisplay = document.getElementById('orbit-display');
@@ -107,7 +137,7 @@ function loadData() {
 }
 
 function saveData() {
-    chrome.storage.local.set({
+    storage.set({
         [CONFIG.storageKey]: {
             missions: missions,
             lastSaved: Date.now()
@@ -120,7 +150,7 @@ function loadHistory() {
     const monthKey = getMonthKey();
     const todayKey = getTodayKey();
 
-    chrome.storage.local.get([CONFIG.historyKey + monthKey], (result) => {
+    storage.get([CONFIG.historyKey + monthKey], (result) => {
         const allHistory = result[CONFIG.historyKey + monthKey] || {};
         const todayHistory = allHistory[todayKey] || [];
         renderHistory(todayHistory);
@@ -133,13 +163,13 @@ function saveHistory(missionText) {
     const todayKey = getTodayKey();
     const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    chrome.storage.local.get([CONFIG.historyKey + monthKey], (result) => {
+    storage.get([CONFIG.historyKey + monthKey], (result) => {
         let allHistory = result[CONFIG.historyKey + monthKey] || {};
         if (!allHistory[todayKey]) allHistory[todayKey] = [];
 
         allHistory[todayKey].unshift({ task: missionText, time: nowTime });
 
-        chrome.storage.local.set({
+        storage.set({
             [CONFIG.historyKey + monthKey]: allHistory
         }, () => {
             renderHistory(allHistory[todayKey]);
@@ -189,7 +219,7 @@ function renderArchive(allHistory) {
 function exportToMarkdown() {
     const monthKey = getMonthKey();
 
-    chrome.storage.local.get([CONFIG.historyKey + monthKey], (result) => {
+    storage.get([CONFIG.historyKey + monthKey], (result) => {
         const allHistory = result[CONFIG.historyKey + monthKey] || {};
         const days = Object.keys(allHistory).sort();
 

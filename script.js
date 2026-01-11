@@ -178,6 +178,52 @@ function saveHistory(missionText, status = 'secured') {
     });
 }
 
+// --- Edit History Item ---
+function editHistoryItem(index) {
+    const monthKey = getMonthKey();
+    const todayKey = getTodayKey();
+
+    storage.get([CONFIG.historyKey + monthKey], (result) => {
+        let allHistory = result[CONFIG.historyKey + monthKey] || {};
+        if (!allHistory[todayKey] || !allHistory[todayKey][index]) return;
+
+        const item = allHistory[todayKey][index];
+        const newTask = prompt('Edit task name:', item.task);
+        if (newTask === null || newTask.trim() === '') return;
+
+        allHistory[todayKey][index].task = newTask.trim();
+
+        storage.set({
+            [CONFIG.historyKey + monthKey]: allHistory
+        }, () => {
+            renderHistory(allHistory[todayKey]);
+            renderArchive(allHistory);
+        });
+    });
+}
+
+// --- Delete History Item ---
+function deleteHistoryItem(index) {
+    const monthKey = getMonthKey();
+    const todayKey = getTodayKey();
+
+    if (!confirm('Delete this record?')) return;
+
+    storage.get([CONFIG.historyKey + monthKey], (result) => {
+        let allHistory = result[CONFIG.historyKey + monthKey] || {};
+        if (!allHistory[todayKey]) return;
+
+        allHistory[todayKey].splice(index, 1);
+
+        storage.set({
+            [CONFIG.historyKey + monthKey]: allHistory
+        }, () => {
+            renderHistory(allHistory[todayKey]);
+            renderArchive(allHistory);
+        });
+    });
+}
+
 function renderHistory(list) {
     const container = document.getElementById('historyList');
     const countEl = document.getElementById('todayCount');
@@ -188,19 +234,30 @@ function renderHistory(list) {
         return;
     }
 
-    container.innerHTML = list.map(item => {
+    container.innerHTML = list.map((item, index) => {
         const status = item.status || 'secured';
         const icon = status === 'secured' ? '✓' : '✗';
         return `
-            <div class="history-item" data-status="${status}">
+            <div class="history-item" data-status="${status}" data-index="${index}">
                 <span class="history-task">
                     <span class="history-status ${status}">${icon}</span>
                     ${item.task}
                 </span>
                 <span class="history-time">${item.time}</span>
+                <div class="history-actions">
+                    <button class="history-action-btn edit" title="Edit">✏️</button>
+                    <button class="history-action-btn delete" title="Delete">🗑️</button>
+                </div>
             </div>
         `;
     }).join('');
+
+    // Bind edit/delete events
+    container.querySelectorAll('.history-item').forEach(item => {
+        const index = parseInt(item.dataset.index);
+        item.querySelector('.edit').addEventListener('click', () => editHistoryItem(index));
+        item.querySelector('.delete').addEventListener('click', () => deleteHistoryItem(index));
+    });
 }
 
 function renderArchive(allHistory) {
@@ -217,16 +274,85 @@ function renderArchive(allHistory) {
         const secured = items.filter(i => i.status !== 'aborted').length;
         const aborted = items.filter(i => i.status === 'aborted').length;
         return `
-            <div class="archive-day">
+            <div class="archive-day" data-day="${day}">
                 <div class="archive-day-title">${day} (✓${secured} ✗${aborted})</div>
-                ${items.map(i => {
+                ${items.map((i, idx) => {
             const status = i.status || 'secured';
             const icon = status === 'secured' ? '✓' : '✗';
-            return `<div class="archive-item"><span class="history-status ${status}">${icon}</span> ${i.task} @ ${i.time}</div>`;
+            return `
+                        <div class="archive-item" data-index="${idx}">
+                            <span class="history-status ${status}">${icon}</span> ${i.task} @ ${i.time}
+                            <div class="history-actions">
+                                <button class="history-action-btn edit" title="Edit">✏️</button>
+                                <button class="history-action-btn delete" title="Delete">🗑️</button>
+                            </div>
+                        </div>
+                    `;
         }).join('')}
             </div>
         `;
     }).join('');
+
+    // Bind edit/delete events for archive items
+    container.querySelectorAll('.archive-day').forEach(dayEl => {
+        const day = dayEl.dataset.day;
+        dayEl.querySelectorAll('.archive-item').forEach(item => {
+            const index = parseInt(item.dataset.index);
+            item.querySelector('.edit').addEventListener('click', () => editArchiveItem(day, index));
+            item.querySelector('.delete').addEventListener('click', () => deleteArchiveItem(day, index));
+        });
+    });
+}
+
+// --- Edit Archive Item ---
+function editArchiveItem(day, index) {
+    const monthKey = getMonthKey();
+
+    storage.get([CONFIG.historyKey + monthKey], (result) => {
+        let allHistory = result[CONFIG.historyKey + monthKey] || {};
+        if (!allHistory[day] || !allHistory[day][index]) return;
+
+        const item = allHistory[day][index];
+        const newTask = prompt('Edit task name:', item.task);
+        if (newTask === null || newTask.trim() === '') return;
+
+        allHistory[day][index].task = newTask.trim();
+
+        storage.set({
+            [CONFIG.historyKey + monthKey]: allHistory
+        }, () => {
+            const todayKey = getTodayKey();
+            renderHistory(allHistory[todayKey] || []);
+            renderArchive(allHistory);
+        });
+    });
+}
+
+// --- Delete Archive Item ---
+function deleteArchiveItem(day, index) {
+    const monthKey = getMonthKey();
+
+    if (!confirm('Delete this record?')) return;
+
+    storage.get([CONFIG.historyKey + monthKey], (result) => {
+        let allHistory = result[CONFIG.historyKey + monthKey] || {};
+        if (!allHistory[day]) return;
+
+        allHistory[day].splice(index, 1);
+
+        // Remove empty day
+        if (allHistory[day].length === 0) {
+            delete allHistory[day];
+        }
+
+        storage.set({
+            [CONFIG.historyKey + monthKey]: allHistory
+        }, () => {
+            const todayKey = getTodayKey();
+            renderHistory(allHistory[todayKey] || []);
+            renderArchive(allHistory);
+        });
+    });
 }
 
 function exportToMarkdown() {

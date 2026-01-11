@@ -729,6 +729,40 @@ body {
     font-size: 0.75rem;
 }
 
+.history-actions {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.history-action-btn {
+    background: none;
+    border: none;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.history-action-btn:hover {
+    opacity: 1;
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.history-action-btn.edit {
+    color: var(--primary);
+}
+
+.history-action-btn.delete {
+    color: #ef4444;
+}
+
+.history-action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
 .history-empty {
     color: var(--text-muted);
     font-style: italic;

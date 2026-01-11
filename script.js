@@ -335,9 +335,10 @@ function renderMissions() {
             if (launchBtn) launchBtn.remove();
         }
 
-        // Launch to Map Button (always show when has text)
+        // Launch to Map Button (only show in STANDBY or ENGAGING when has text)
         let mapBtn = card.querySelector('.launch-map-btn');
-        if (m.text.trim()) {
+        const showMapBtn = (m.status === 'standby' || m.status === 'engaging') && m.text.trim();
+        if (showMapBtn) {
             if (!mapBtn) {
                 mapBtn = document.createElement('button');
                 mapBtn.className = 'launch-map-btn';

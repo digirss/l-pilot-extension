@@ -132,25 +132,33 @@ function saveData() {
     });
 }
 
-// --- Milestone Logic (Shared with L-ORBIT) ---
+// --- Milestone Logic (Synced via Scout Script from L-ORBIT) ---
 let milestones = [];
-const ORBIT_MILEST_KEY = 'orbit_milestones';
+const ORBIT_MILEST_KEY = 'l_pilot_milestones'; // Use the key synced by content.js
 
 function loadMilestones() {
-    // We access localStorage directly for sync with L-ORBIT in same domain
-    const saved = localStorage.getItem(ORBIT_MILEST_KEY);
-    if (saved) {
-        milestones = JSON.parse(saved);
-        milestones.sort((a, b) => new Date(a.date) - new Date(b.date));
-    } else {
-        milestones = [];
-    }
-    renderMilestones();
+    // Load from chrome.storage.local instead of localStorage for portability
+    storage.get([ORBIT_MILEST_KEY], (result) => {
+        if (result[ORBIT_MILEST_KEY]) {
+            milestones = result[ORBIT_MILEST_KEY] || [];
+            // Handle if data comes from scrape (array of {date, event, t_day}) 
+            // vs internal set (array of {id, date, name})
+            milestones = milestones.map(m => ({
+                id: m.id || Date.now() + Math.random(),
+                date: m.date || '',
+                name: m.name || m.event || 'Untitled Event',
+                t_day: m.t_day || ''
+            }));
+            milestones.sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+        renderMilestones();
+    });
 }
 
 function saveMilestones() {
-    localStorage.setItem(ORBIT_MILEST_KEY, JSON.stringify(milestones));
-    renderMilestones();
+    storage.set({ [ORBIT_MILEST_KEY]: milestones }, () => {
+        renderMilestones();
+    });
 }
 
 function addMilestone() {

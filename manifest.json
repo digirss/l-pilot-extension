@@ -1,0 +1,44 @@
+{
+    "manifest_version": 3,
+    "name": "L-PILOT | L.EGION Command",
+    "version": "1.1.0",
+    "description": "L.EGION Vanguard System - Your Daily Command Center",
+    "chrome_url_overrides": {
+        "newtab": "newtab.html"
+    },
+    "permissions": [
+        "storage"
+    ],
+    "host_permissions": [
+        "*://1pxai.1pa.uk/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://1pxai.1pa.uk/l-orbit/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        },
+        {
+            "matches": [
+                "*://1pxai.1pa.uk/l-focus/*"
+            ],
+            "js": [
+                "content-focus.js"
+            ]
+        }
+    ],
+    "icons": {
+        "16": "src/icons/icon16.png",
+        "48": "src/icons/icon48.png",
+        "128": "src/icons/icon128.png"
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    }
+}

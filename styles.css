@@ -1,0 +1,522 @@
+:root {
+    --primary: #6366f1;
+    --text-main: #18181b;
+    --text-muted: #a1a1aa;
+    --bg-color: #f8fafc;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --border-color: rgba(99, 102, 241, 0.2);
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --font-ui: 'Outfit', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-ui);
+    background-color: var(--bg-color);
+    /* Subtle grid background */
+    background-image:
+        linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    color: var(--text-main);
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Startup Overlay */
+#startup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.8s ease-out;
+}
+
+#startup-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.terminal-loader {
+    font-family: var(--font-mono);
+    color: var(--primary);
+    text-align: center;
+}
+
+.matrix-text {
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    height: 1.2em;
+    /* fixed height */
+}
+
+.logo-boot {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 1s;
+}
+
+/* Layout */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    /* Adjusted to 1200px */
+    min-height: 800px;
+    /* Increased from 500px */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 60px;
+    /* Increased padding */
+    opacity: 0;
+    transform: scale(0.98);
+    transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.container.active {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* HUD Header */
+.hud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--border-color);
+    /* Thicker line */
+    padding-bottom: 30px;
+    margin-bottom: 60px;
+}
+
+.brand-center {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-weight: 700;
+    font-size: 2rem;
+    /* Dig from 1.2rem */
+    letter-spacing: 4px;
+    color: var(--primary);
+}
+
+.brand-center svg {
+    width: 40px;
+    /* Bigger Icon */
+    height: 40px;
+    stroke-width: 2.5;
+}
+
+.status-module {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    /* Big from 0.8rem */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.status-module.right {
+    text-align: right;
+}
+
+.label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    /* Big from 0.7rem */
+    letter-spacing: 2px;
+}
+
+.value {
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 1.4rem;
+    /* Big numbers */
+}
+
+/* Vanguard Core */
+.vanguard-core {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.sector-title {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    /* Big from 0.85rem */
+    margin-bottom: 32px;
+    letter-spacing: 2px;
+    border-left: 4px solid var(--primary);
+    padding-left: 16px;
+}
+
+.mission-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    /* More gap */
+}
+
+.mission-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+    padding: 32px;
+    /* More padding */
+    height: 300px;
+    /* Big card from 180px */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: all 0.3s ease;
+    clip-path: polygon(0 0,
+            100% 0,
+            100% calc(100% - 20px),
+            calc(100% - 20px) 100%,
+            0 100%);
+}
+
+.mission-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 10px 40px -10px rgba(99, 102, 241, 0.2);
+    background: #fff;
+    transform: translateY(-4px);
+}
+
+/* Launch to Focus Button */
+.launch-focus-btn {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.launch-focus-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
+}
+
+.card-status-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    /* Big from 0.7rem */
+}
+
+.sector-id {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.status-btn {
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    color: var(--primary);
+    opacity: 0.8;
+    transition: opacity 0.2s;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.status-btn:hover {
+    opacity: 1;
+    text-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+}
+
+.mission-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: var(--font-ui);
+    font-size: 1.8rem;
+    /* Huge input from 1.1rem */
+    color: var(--text-main);
+    resize: none;
+    outline: none;
+    flex: 1;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.mission-input::placeholder {
+    color: #cbd5e1;
+    font-weight: 300;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* Mission States */
+.mission-card[data-status="secured"] {
+    background: rgba(34, 197, 94, 0.05);
+    /* Green tint */
+    border-color: rgba(34, 197, 94, 0.4);
+}
+
+.mission-card[data-status="secured"] .mission-input {
+    text-decoration: line-through;
+    opacity: 0.6;
+    color: #22c55e;
+}
+
+.mission-card[data-status="secured"] .status-btn {
+    color: #22c55e;
+}
+
+.mission-card[data-status="aborted"] {
+    background: rgba(239, 68, 68, 0.05);
+    /* Red tint */
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.mission-card[data-status="aborted"] .status-btn {
+    color: #ef4444;
+}
+
+/* Footer */
+.hud-footer {
+    border-top: 1px solid var(--border-color);
+    padding-top: 24px;
+    margin-top: 60px;
+    overflow: hidden;
+}
+
+.ticker-wrap {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.ticker {
+    display: inline-block;
+    animation: marquee 40s linear infinite;
+    /* Slower */
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    /* Big */
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    font-weight: 500;
+}
+
+.separator {
+    margin: 0 20px;
+    color: var(--primary);
+    opacity: 0.5;
+}
+
+/* Animations */
+@keyframes marquee {
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Link Modules */
+.link-module {
+    text-decoration: none;
+    transition: all 0.2s ease;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+.link-module:hover {
+    background: rgba(99, 102, 241, 0.05);
+    transform: translateY(-2px);
+}
+
+.link-module:active {
+    transform: translateY(0);
+}
+
+/* Quick Links Bar */
+.quick-links {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    padding: 16px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.ql-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    letter-spacing: 1px;
+}
+
+.ql-item svg {
+    stroke: var(--text-muted);
+    transition: stroke 0.2s ease;
+}
+
+.ql-item:hover {
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+    transform: translateY(-2px);
+}
+
+.ql-item:hover svg {
+    stroke: var(--primary);
+}
+
+.ql-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.ql-name {
+    font-weight: 600;
+}
+
+.ql-tagline {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.7;
+    font-style: italic;
+}
+
+/* Milestones Section */
+.milestones-section {
+    margin-top: 40px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 30px;
+    animation: fadeUp 0.8s ease forwards 0.2s;
+    opacity: 0;
+}
+
+.milestones-scroll-frame {
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 12px;
+    /* Custom Scrollbar for Mecha feel */
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+}
+
+.milestones-scroll-frame::-webkit-scrollbar {
+    height: 4px;
+}
+
+.milestones-scroll-frame::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.milestones-scroll-frame::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 2px;
+}
+
+.milestone-card {
+    min-width: 200px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    font-family: var(--font-mono);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-left: 2px solid var(--primary);
+    transition: all 0.2s;
+}
+
+.milestone-card:hover {
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+    transform: translateY(-2px);
+}
+
+.ms-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.ms-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ms-badge {
+    font-size: 0.7rem;
+    color: var(--primary);
+    font-weight: 700;
+    margin-top: auto;
+}
+
+.milestone-empty {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-style: italic;
+    opacity: 0.7;
+    padding: 10px 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .mission-grid {
+        grid-template-columns: 1fr;
+        /* Stack on small screens */
+    }
+}

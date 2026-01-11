@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L-PILOT | Command</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- Startup Sequence Overlay -->
+    <div id="startup-overlay">
+        <div class="terminal-loader">
+            <div class="scanline"></div>
+            <div class="matrix-text" id="boot-text"></div>
+            <div class="logo-boot">L-PILOT // VANGUARD SYSTEM</div>
+        </div>
+    </div>
+
+    <!-- Main Command Center -->
+    <div class="container" id="main-interface">
+
+        <!-- Top Status Bar -->
+        <header class="hud-header">
+            <a href="https://1pxai.1pa.uk/l-orbit" target="_blank" class="status-module link-module">
+                <span class="label">ORBIT STATUS</span>
+                <span class="value" id="orbit-display">STANDBY</span>
+            </a>
+            <a href="https://1pxai.1pa.uk" target="_blank" class="brand-center link-module">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <span>L-PILOT</span>
+            </a>
+            <a href="https://1pxai.1pa.uk/l-focus" target="_blank" class="status-module right link-module">
+                <span class="label">FOCUS STATUS</span>
+                <span class="value" id="focus-display">ready_</span>
+            </a>
+        </header>
+
+        <!-- Quick Links Bar -->
+        <nav class="quick-links">
+            <a href="https://1pxai.1pa.uk/l-orbit/" target="_blank" class="ql-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <ellipse cx="12" cy="12" rx="3" ry="10" transform="rotate(60 12 12)"></ellipse>
+                    <ellipse cx="12" cy="12" rx="3" ry="10" transform="rotate(-60 12 12)"></ellipse>
+                </svg>
+                <div class="ql-text">
+                    <span class="ql-name">L-ORBIT</span>
+                    <span class="ql-tagline">Drop In</span>
+                </div>
+            </a>
+            <a href="https://1pxai.1pa.uk/l-map/" target="_blank" class="ql-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 2v4m0 12v4M2 12h4m12 0h4"></path>
+                    <path d="M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"></path>
+                </svg>
+                <div class="ql-text">
+                    <span class="ql-name">L-MAP</span>
+                    <span class="ql-tagline">Map Out</span>
+                </div>
+            </a>
+            <a href="https://1pxai.1pa.uk/l-focus/" target="_blank" class="ql-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <div class="ql-text">
+                    <span class="ql-name">L-FOCUS</span>
+                    <span class="ql-tagline">Execute</span>
+                </div>
+            </a>
+        </nav>
+
+        <!-- Core: L-VANGUARD -->
+        <main class="vanguard-core">
+            <div class="sector-title">
+                <span class="glitch-text">L-VANGUARD</span> // TACTICAL SECTORS
+            </div>
+
+            <div class="mission-grid">
+                <!-- Mission 1 -->
+                <div class="mission-card" id="mission-1">
+                    <div class="card-status-bar">
+                        <span class="sector-id">SECTOR 01</span>
+                        <button class="status-btn">[PENDING]</button>
+                    </div>
+                    <input type="text" class="mission-input" id="input-1" placeholder="Define Primary Objective..."
+                        autocomplete="off">
+                </div>
+
+                <!-- Mission 2 -->
+                <div class="mission-card" id="mission-2">
+                    <div class="card-status-bar">
+                        <span class="sector-id">SECTOR 02</span>
+                        <button class="status-btn">[PENDING]</button>
+                    </div>
+                    <input type="text" class="mission-input" id="input-2" placeholder="Secondary Objective..."
+                        autocomplete="off">
+                </div>
+
+                <!-- Mission 3 -->
+                <div class="mission-card" id="mission-3">
+                    <div class="card-status-bar">
+                        <span class="sector-id">SECTOR 03</span>
+                        <button class="status-btn">[PENDING]</button>
+                    </div>
+                    <input type="text" class="mission-input" id="input-3" placeholder="Tertiary Objective..."
+                        autocomplete="off">
+                </div>
+            </div>
+
+            <!-- Milestones Section -->
+            <div class="milestones-section">
+                <div class="sector-title">
+                    <span class="glitch-text">KEY MILESTONES</span> // STRATEGIC EVENTS
+                </div>
+                <div class="milestones-scroll-frame" id="milestones-container">
+                    <div class="milestone-empty">WAITING FOR ORBIT SYNC...</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="hud-footer">
+            <div class="ticker-wrap">
+                <div class="ticker">
+                    <span class="item">SHOOT FOR THE MOON. EVEN IF YOU MISS, YOU'LL LAND AMONG THE STARS.</span>
+                    <span class="item separator">//</span>
+                    <span class="item">MAKE TODAY 1% BETTER.</span>
+                    <span class="item separator">//</span>
+                    <span class="item">FORGING PATHS WHERE NONE EXIST.</span>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

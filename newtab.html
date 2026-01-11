@@ -91,33 +91,87 @@
 
             <div class="mission-grid">
                 <!-- Mission 1 -->
-                <div class="mission-card" id="mission-1">
+                <div class="mission-card" id="mission-1" data-status="standby">
                     <div class="card-status-bar">
                         <span class="sector-id">SECTOR 01</span>
-                        <button class="status-btn">[PENDING]</button>
+                        <div class="status-icons" data-mission="1">
+                            <button class="status-icon-btn active" data-status="standby" title="STANDBY">
+                                <span class="icon">⏸</span>
+                                <span class="label">STANDBY</span>
+                            </button>
+                            <button class="status-icon-btn" data-status="engaging" title="ENGAGING">
+                                <span class="icon">▶</span>
+                                <span class="label">ENGAGING</span>
+                            </button>
+                            <button class="status-icon-btn" data-status="secured" title="SECURED">
+                                <span class="icon">✓</span>
+                                <span class="label">SECURED</span>
+                            </button>
+                            <button class="status-icon-btn" data-status="aborted" title="ABORTED">
+                                <span class="icon">✗</span>
+                                <span class="label">ABORTED</span>
+                            </button>
+                        </div>
                     </div>
                     <input type="text" class="mission-input" id="input-1" placeholder="Define Primary Objective..."
                         autocomplete="off">
+                    <button class="confirm-log-btn" style="display:none;">CONFIRM &amp; LOG</button>
                 </div>
 
                 <!-- Mission 2 -->
-                <div class="mission-card" id="mission-2">
+                <div class="mission-card" id="mission-2" data-status="standby">
                     <div class="card-status-bar">
                         <span class="sector-id">SECTOR 02</span>
-                        <button class="status-btn">[PENDING]</button>
+                        <div class="status-icons" data-mission="2">
+                            <button class="status-icon-btn active" data-status="standby" title="STANDBY">
+                                <span class="icon">⏸</span>
+                                <span class="label">STANDBY</span>
+                            </button>
+                            <button class="status-icon-btn" data-status="engaging" title="ENGAGING">
+                                <span class="icon">▶</span>
+                                <span class="label">ENGAGING</span>
+                            </button>
+                            <button class="status-icon-btn" data-status="secured" title="SECURED">
+                                <span class="icon">✓</span>
+                                <span class="label">SECURED</span>
+                            </button>
+                            <button class="status-icon-btn" data-status="aborted" title="ABORTED">
+                                <span class="icon">✗</span>
+                                <span class="label">ABORTED</span>
+                            </button>
+                        </div>
                     </div>
                     <input type="text" class="mission-input" id="input-2" placeholder="Secondary Objective..."
                         autocomplete="off">
+                    <button class="confirm-log-btn" style="display:none;">CONFIRM &amp; LOG</button>
                 </div>
 
                 <!-- Mission 3 -->
-                <div class="mission-card" id="mission-3">
+                <div class="mission-card" id="mission-3" data-status="standby">
                     <div class="card-status-bar">
                         <span class="sector-id">SECTOR 03</span>
-                        <button class="status-btn">[PENDING]</button>
+                        <div class="status-icons" data-mission="3">
+                            <button class="status-icon-btn active" data-status="standby" title="STANDBY">
+                                <span class="icon">⏸</span>
+                                <span class="label">STANDBY</span>
+                            </button>
+                            <button class="status-icon-btn" data-status="engaging" title="ENGAGING">
+                                <span class="icon">▶</span>
+                                <span class="label">ENGAGING</span>
+                            </button>
+                            <button class="status-icon-btn" data-status="secured" title="SECURED">
+                                <span class="icon">✓</span>
+                                <span class="label">SECURED</span>
+                            </button>
+                            <button class="status-icon-btn" data-status="aborted" title="ABORTED">
+                                <span class="icon">✗</span>
+                                <span class="label">ABORTED</span>
+                            </button>
+                        </div>
                     </div>
                     <input type="text" class="mission-input" id="input-3" placeholder="Tertiary Objective..."
                         autocomplete="off">
+                    <button class="confirm-log-btn" style="display:none;">CONFIRM &amp; LOG</button>
                 </div>
             </div>
 
@@ -128,6 +182,27 @@
                 </div>
                 <div class="milestones-scroll-frame" id="milestones-container">
                     <div class="milestone-empty">WAITING FOR ORBIT SYNC...</div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="history-section">
+                <div class="sector-title">
+                    <span class="glitch-text">MISSION LOG</span> // TODAY'S COMPLETED (<span id="todayCount">0</span>)
+                </div>
+                <div class="history-list" id="historyList">
+                    <div class="history-empty">NO MISSIONS LOGGED YET</div>
+                </div>
+            </div>
+
+            <!-- History Archive -->
+            <div class="history-archive">
+                <div class="archive-header">
+                    <span class="sector-title"><span class="glitch-text">ARCHIVE</span> // LAST 30 DAYS</span>
+                    <button class="export-btn" id="exportMdBtn">EXPORT MD</button>
+                </div>
+                <div class="archive-content" id="archiveContent">
+                    <div class="archive-empty">NO ARCHIVED RECORDS</div>
                 </div>
             </div>
         </main>

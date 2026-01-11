@@ -2,7 +2,8 @@
 const CONFIG = {
     typingSpeed: 30, // ms per char
     startupDelay: 800, // ms after typing
-    storageKey: 'l_pilot_data_v1'
+    storageKey: 'l_pilot_data_v1',
+    historyKey: 'l_pilot_history_'
 };
 
 // --- Boot Sequence ---
@@ -49,19 +50,25 @@ async function runBootSequence() {
 }
 
 // --- Status Manager ---
-const STATUS_TYPES = [
-    { id: 'pending', label: '[PENDING]', class: '' },
-    { id: 'engaging', label: '[ENGAGING]', class: 'engaging' },
-    { id: 'secured', label: '[SECURED]', class: 'secured' },
-    { id: 'aborted', label: '[ABORTED]', class: 'aborted' }
-];
+const STATUS_TYPES = ['standby', 'engaging', 'secured', 'aborted'];
 
 let missions = [
-    { id: 1, text: '', status: 'pending' },
-    { id: 2, text: '', status: 'pending' },
-    { id: 3, text: '', status: 'pending' }
+    { id: 1, text: '', status: 'standby' },
+    { id: 2, text: '', status: 'standby' },
+    { id: 3, text: '', status: 'standby' }
 ];
 
+// --- History Helpers ---
+function getMonthKey() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function getTodayKey() {
+    return new Date().toISOString().split('T')[0];
+}
+
+// --- Data Management ---
 function loadData() {
     chrome.storage.local.get([CONFIG.storageKey], (result) => {
         if (result[CONFIG.storageKey]) {
@@ -95,6 +102,8 @@ function loadData() {
             });
         }
     });
+
+    loadHistory();
 }
 
 function saveData() {
@@ -106,21 +115,141 @@ function saveData() {
     });
 }
 
+// --- History Management ---
+function loadHistory() {
+    const monthKey = getMonthKey();
+    const todayKey = getTodayKey();
+
+    chrome.storage.local.get([CONFIG.historyKey + monthKey], (result) => {
+        const allHistory = result[CONFIG.historyKey + monthKey] || {};
+        const todayHistory = allHistory[todayKey] || [];
+        renderHistory(todayHistory);
+        renderArchive(allHistory);
+    });
+}
+
+function saveHistory(missionText) {
+    const monthKey = getMonthKey();
+    const todayKey = getTodayKey();
+    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    chrome.storage.local.get([CONFIG.historyKey + monthKey], (result) => {
+        let allHistory = result[CONFIG.historyKey + monthKey] || {};
+        if (!allHistory[todayKey]) allHistory[todayKey] = [];
+
+        allHistory[todayKey].unshift({ task: missionText, time: nowTime });
+
+        chrome.storage.local.set({
+            [CONFIG.historyKey + monthKey]: allHistory
+        }, () => {
+            renderHistory(allHistory[todayKey]);
+            renderArchive(allHistory);
+        });
+    });
+}
+
+function renderHistory(list) {
+    const container = document.getElementById('historyList');
+    const countEl = document.getElementById('todayCount');
+    countEl.textContent = list.length;
+
+    if (list.length === 0) {
+        container.innerHTML = '<div class="history-empty">NO MISSIONS LOGGED YET</div>';
+        return;
+    }
+
+    container.innerHTML = list.map(item => `
+        <div class="history-item">
+            <span class="history-task">${item.task}</span>
+            <span class="history-time">${item.time}</span>
+        </div>
+    `).join('');
+}
+
+function renderArchive(allHistory) {
+    const container = document.getElementById('archiveContent');
+    const days = Object.keys(allHistory).sort().reverse();
+
+    if (days.length === 0) {
+        container.innerHTML = '<div class="archive-empty">NO ARCHIVED RECORDS</div>';
+        return;
+    }
+
+    container.innerHTML = days.map(day => {
+        const items = allHistory[day];
+        return `
+            <div class="archive-day">
+                <div class="archive-day-title">${day} (${items.length} MISSIONS)</div>
+                ${items.map(i => `<div class="archive-item">${i.task} @ ${i.time}</div>`).join('')}
+            </div>
+        `;
+    }).join('');
+}
+
+function exportToMarkdown() {
+    const monthKey = getMonthKey();
+
+    chrome.storage.local.get([CONFIG.historyKey + monthKey], (result) => {
+        const allHistory = result[CONFIG.historyKey + monthKey] || {};
+        const days = Object.keys(allHistory).sort();
+
+        if (days.length === 0) {
+            alert('NO RECORDS TO EXPORT');
+            return;
+        }
+
+        let md = `# L-PILOT MISSION LOG\n\n`;
+        md += `**PERIOD**: ${monthKey}\n\n`;
+        md += `---\n\n`;
+
+        days.forEach(day => {
+            const items = allHistory[day];
+            md += `## ${day} (${items.length} MISSIONS)\n\n`;
+            items.forEach(item => {
+                md += `- **${item.task}** @ ${item.time}\n`;
+            });
+            md += `\n`;
+        });
+
+        md += `---\n\n`;
+        md += `*EXPORTED FROM L-PILOT | ${new Date().toLocaleString()}*\n`;
+
+        // Download
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `L-PILOT_${monthKey}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+}
+
+// --- Render Missions ---
 function renderMissions() {
     missions.forEach(m => {
         const card = document.getElementById(`mission-${m.id}`);
         const input = document.getElementById(`input-${m.id}`);
-        const btn = card.querySelector('.status-btn');
+        const statusIcons = card.querySelector('.status-icons');
+        const confirmBtn = card.querySelector('.confirm-log-btn');
 
         // Update Text
         if (input.value !== m.text) {
             input.value = m.text;
         }
 
-        // Update Status
-        const statusConfig = STATUS_TYPES.find(s => s.id === m.status) || STATUS_TYPES[0];
-        btn.textContent = statusConfig.label;
+        // Update Status - highlight active icon button
         card.setAttribute('data-status', m.status);
+        statusIcons.querySelectorAll('.status-icon-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.status === m.status);
+        });
+
+        // Show CONFIRM & LOG button when SECURED
+        if (m.status === 'secured' && m.text.trim()) {
+            confirmBtn.style.display = 'block';
+        } else {
+            confirmBtn.style.display = 'none';
+        }
 
         // Launch to Focus Button (ENGAGING only)
         let launchBtn = card.querySelector('.launch-focus-btn');
@@ -140,24 +269,70 @@ function renderMissions() {
             if (launchBtn) launchBtn.remove();
         }
     });
+
+    // Check for all secured - celebration!
+    checkAllSecured();
 }
 
-// --- Actions ---
-
-function cycleStatus(id) {
-    const mIndex = missions.findIndex(m => m.id === id);
+// --- Set Status ---
+function setStatus(missionId, newStatus) {
+    const mIndex = missions.findIndex(m => m.id === missionId);
     if (mIndex === -1) return;
 
-    const currentStatus = missions[mIndex].status;
-    const currentIndex = STATUS_TYPES.findIndex(s => s.id === currentStatus);
-    const nextIndex = (currentIndex + 1) % STATUS_TYPES.length;
-
-    missions[mIndex].status = STATUS_TYPES[nextIndex].id;
-
+    missions[mIndex].status = newStatus;
     renderMissions();
     saveData();
 }
 
+// --- Confirm & Log Mission ---
+function confirmAndLog(missionId) {
+    const mIndex = missions.findIndex(m => m.id === missionId);
+    if (mIndex === -1) return;
+
+    const mission = missions[mIndex];
+    if (!mission.text.trim()) return;
+
+    // Save to history
+    saveHistory(mission.text);
+
+    // Clear mission
+    missions[mIndex].text = '';
+    missions[mIndex].status = 'standby';
+
+    // Update UI
+    document.getElementById(`input-${missionId}`).value = '';
+    renderMissions();
+    saveData();
+}
+
+// --- Check All Secured ---
+function checkAllSecured() {
+    const allSecured = missions.every(m => m.status === 'secured' && m.text.trim());
+
+    if (allSecured) {
+        showCelebration();
+    }
+}
+
+// --- Celebration ---
+function showCelebration() {
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'celebration-overlay';
+    overlay.innerHTML = `
+        <div class="celebration-text">MISSION COMPLETE</div>
+        <div class="celebration-sub">ALL SECTORS SECURED</div>
+        <button class="celebration-btn">DISMISS</button>
+    `;
+
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('.celebration-btn').addEventListener('click', () => {
+        overlay.remove();
+    });
+}
+
+// --- Input Handler ---
 function handleInput(id, value) {
     const mIndex = missions.findIndex(m => m.id === id);
     if (mIndex === -1) return;
@@ -181,8 +356,21 @@ document.addEventListener('DOMContentLoaded', () => {
         input.addEventListener('focus', () => card.style.borderColor = 'var(--primary)');
         input.addEventListener('blur', () => card.style.borderColor = '');
 
-        // Status Button handling (Fixing CSP issue)
-        const btn = card.querySelector('.status-btn');
-        btn.addEventListener('click', () => cycleStatus(id));
+        // Status Icon Buttons
+        const statusIcons = card.querySelector('.status-icons');
+        statusIcons.querySelectorAll('.status-icon-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setStatus(id, btn.dataset.status);
+            });
+        });
+
+        // CONFIRM & LOG Button
+        const confirmBtn = card.querySelector('.confirm-log-btn');
+        confirmBtn.addEventListener('click', () => {
+            confirmAndLog(id);
+        });
     });
+
+    // Export MD Button
+    document.getElementById('exportMdBtn').addEventListener('click', exportToMarkdown);
 });

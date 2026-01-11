@@ -180,9 +180,28 @@
 
             <!-- Milestones Section -->
             <div class="milestones-section">
-                <div class="sector-title">
-                    <span class="glitch-text">KEY MILESTONES</span> // STRATEGIC EVENTS
+                <div class="sector-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span><span class="glitch-text">KEY MILESTONES</span> // STRATEGIC EVENTS</span>
+                    <button class="export-btn" id="exportMilestonesBtn"
+                        style="font-size:0.75rem; padding:4px 10px;">EXPORT MD</button>
                 </div>
+
+                <!-- Milestone Input Area (New) -->
+                <div class="milestone-input-group" style="display:flex; gap:8px; margin-bottom:16px;">
+                    <input type="date" id="msDate" class="ms-input"
+                        style="width:130px; padding:8px; border-radius:6px; border:1px solid var(--border-color); background:rgba(255,255,255,0.05); color:var(--text-main); font-family:var(--font-mono);">
+                    <input type="text" id="msName" class="ms-input" placeholder="Event Name"
+                        style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--border-color); background:rgba(255,255,255,0.05); color:var(--text-main); font-family:var(--font-mono); outline:none;">
+                    <button id="msSubmitBtn" class="btn-icon-add"
+                        style="background:var(--primary); color:white; border:none; width:36px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                </div>
+
                 <div class="milestones-scroll-frame" id="milestones-container">
                     <div class="milestone-empty">WAITING FOR ORBIT SYNC...</div>
                 </div>

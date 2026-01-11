@@ -107,34 +107,182 @@ function loadData() {
         renderMissions();
     });
 
-    // Check Orbit Status & Milestones
-    storage.get(['l_pilot_orbit_status', 'l_pilot_milestones'], (result) => {
+    // Check Orbit Status
+    storage.get(['l_pilot_orbit_status'], (result) => {
         // Orbit Status
         if (result.l_pilot_orbit_status) {
             const orbitDisplay = document.getElementById('orbit-display');
             orbitDisplay.textContent = result.l_pilot_orbit_status;
             orbitDisplay.style.color = 'var(--primary)';
         }
-
-        // Milestones
-        const msContainer = document.getElementById('milestones-container');
-        if (result.l_pilot_milestones && result.l_pilot_milestones.length > 0) {
-            msContainer.innerHTML = ''; // Clear default
-            result.l_pilot_milestones.forEach(ms => {
-                const el = document.createElement('div');
-                el.className = 'milestone-card';
-                el.innerHTML = `
-                    <div class="ms-date">${ms.date}</div>
-                    <div class="ms-title">${ms.event}</div>
-                    <div class="ms-badge">${ms.t_day}</div>
-                `;
-                msContainer.appendChild(el);
-            });
-        }
     });
+
+    // Load Milestones from shared key 'orbit_milestones'
+    loadMilestones(); // Call the new milestone loader
 
     loadHistory();
 }
+
+function saveData() {
+    storage.set({
+        [CONFIG.storageKey]: {
+            missions: missions,
+            lastSaved: Date.now()
+        }
+    });
+}
+
+// --- Milestone Logic (Shared with L-ORBIT) ---
+let milestones = [];
+const ORBIT_MILEST_KEY = 'orbit_milestones';
+
+function loadMilestones() {
+    // We access localStorage directly for sync with L-ORBIT in same domain
+    const saved = localStorage.getItem(ORBIT_MILEST_KEY);
+    if (saved) {
+        milestones = JSON.parse(saved);
+        milestones.sort((a, b) => new Date(a.date) - new Date(b.date));
+    } else {
+        milestones = [];
+    }
+    renderMilestones();
+}
+
+function saveMilestones() {
+    localStorage.setItem(ORBIT_MILEST_KEY, JSON.stringify(milestones));
+    renderMilestones();
+}
+
+function addMilestone() {
+    const dateInput = document.getElementById('msDate');
+    const nameInput = document.getElementById('msName');
+
+    const dateVal = dateInput.value;
+    const nameVal = nameInput.value.trim();
+
+    if (!dateVal || !nameVal) {
+        alert('Please enter both a date and a name.');
+        return;
+    }
+
+    milestones.push({
+        id: Date.now(),
+        date: dateVal,
+        name: nameVal
+    });
+
+    saveMilestones();
+
+    // Clear inputs
+    nameInput.value = '';
+    dateInput.value = '';
+}
+
+function editMilestone(id) {
+    const item = milestones.find(m => m.id === id);
+    if (!item) return;
+
+    const newName = prompt('Edit Milestone Name:', item.name);
+    if (newName !== null) {
+        const newDate = prompt('Edit Date (YYYY-MM-DD):', item.date);
+
+        if (newName.trim()) item.name = newName.trim();
+        if (newDate && newDate.trim()) item.date = newDate.trim();
+
+        saveMilestones();
+    }
+}
+
+function deleteMilestone(id) {
+    if (!confirm('Remove this milestone?')) return;
+    milestones = milestones.filter(m => m.id !== id);
+    saveMilestones();
+}
+
+function renderMilestones() {
+    const msContainer = document.getElementById('milestones-container');
+
+    if (milestones.length === 0) {
+        msContainer.innerHTML = '<div class="milestone-empty">NO MILESTONES SET (ADD ABOVE)</div>';
+        return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    msContainer.innerHTML = milestones.map(ms => {
+        const msDate = new Date(ms.date);
+        const diffTime = msDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        let badgeClass = 'future';
+        let badgeText = `${diffDays} days left`;
+
+        if (diffDays < 0) {
+            badgeClass = 'past';
+            badgeText = `${Math.abs(diffDays)} days ago`;
+        } else if (diffDays === 0) {
+            badgeClass = 'today';
+            badgeText = 'TODAY';
+        }
+
+        return `
+            <div class="milestone-card" style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:rgba(255,255,255,0.05); border-radius:8px; margin-bottom:8px;">
+                <div style="flex:1;">
+                    <div style="font-size:0.8rem; color:var(--text-muted); font-family:var(--font-mono);">${ms.date}</div>
+                    <div style="font-size:1rem; font-weight:600; color:var(--text-main); margin-top:2px;">${ms.name}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="ms-badge" style="font-size:0.75rem; background:rgba(99,102,241,0.1); color:var(--primary); padding:4px 8px; border-radius:4px;">${badgeText}</div>
+                    <div class="history-actions">
+                        <button class="history-action-btn edit" onclick="editMilestone(${ms.id})" title="Edit">✏️</button>
+                        <button class="history-action-btn delete" onclick="deleteMilestone(${ms.id})" title="Delete">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function exportMilestonesToMD() {
+    if (milestones.length === 0) {
+        alert('NO MILESTONES TO EXPORT');
+        return;
+    }
+
+    const year = new Date().getFullYear();
+    let md = `# Key Milestones (${year})\n\n`;
+
+    milestones.forEach(ms => {
+        const msDate = new Date(ms.date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffTime = msDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        let status = diffDays < 0 ? '[x]' : '[ ]';
+        let note = diffDays < 0 ? `(${Math.abs(diffDays)} days ago)` : `(${diffDays} days left)`;
+
+        md += `- ${status} **${ms.date}**: ${ms.name} ${note}\n`;
+    });
+
+    md += `\n*Exported from L-PILOT | ${new Date().toLocaleDateString()}*\n`;
+
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Milestones_${year}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// Global Storage Listener for Sync
+window.addEventListener('storage', (e) => {
+    if (e.key === ORBIT_MILEST_KEY) {
+        loadMilestones(); // Auto-reload when changed in L-ORBIT
+    }
+});
 
 function saveData() {
     storage.set({
@@ -609,6 +757,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Export MD Button
-    document.getElementById('exportMdBtn').addEventListener('click', exportToMarkdown);
+    // Milestones Events
+    const msSubmitBtn = document.getElementById('msSubmitBtn');
+    if (msSubmitBtn) {
+        msSubmitBtn.addEventListener('click', addMilestone);
+    }
+
+    const exportMsBtn = document.getElementById('exportMilestonesBtn');
+    if (exportMsBtn) {
+        exportMsBtn.addEventListener('click', exportMilestonesToMD);
+    }
+
+    const exportBtn = document.getElementById('exportMdBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportToMarkdown);
+    }
 });

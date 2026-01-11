@@ -334,6 +334,24 @@ function renderMissions() {
         } else {
             if (launchBtn) launchBtn.remove();
         }
+
+        // Launch to Map Button (always show when has text)
+        let mapBtn = card.querySelector('.launch-map-btn');
+        if (m.text.trim()) {
+            if (!mapBtn) {
+                mapBtn = document.createElement('button');
+                mapBtn.className = 'launch-map-btn';
+                mapBtn.innerHTML = '◇ MAP';
+                mapBtn.title = 'Expand in L-MAP';
+                mapBtn.addEventListener('click', () => {
+                    const taskText = encodeURIComponent(m.text);
+                    window.open(`https://1pxai.1pa.uk/l-map/?topic=${taskText}`, '_blank');
+                });
+                card.appendChild(mapBtn);
+            }
+        } else {
+            if (mapBtn) mapBtn.remove();
+        }
     });
 
     // Check for all secured - celebration!

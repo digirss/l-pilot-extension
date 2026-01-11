@@ -209,8 +209,11 @@
 
             <!-- History Section -->
             <div class="history-section">
-                <div class="sector-title">
-                    <span class="glitch-text">MISSION LOG</span> // TODAY'S COMPLETED (<span id="todayCount">0</span>)
+                <div class="sector-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span><span class="glitch-text">MISSION LOG</span> // TODAY'S COMPLETED (<span
+                            id="todayCount">0</span>)</span>
+                    <button class="export-btn" id="exportMdBtn" style="font-size:0.75rem; padding:4px 10px;">EXPORT
+                        MD</button>
                 </div>
                 <div class="history-list" id="historyList">
                     <div class="history-empty">NO MISSIONS LOGGED YET</div>
@@ -221,7 +224,6 @@
             <div class="history-archive">
                 <div class="archive-header">
                     <span class="sector-title"><span class="glitch-text">ARCHIVE</span> // LAST 30 DAYS</span>
-                    <button class="export-btn" id="exportMdBtn">EXPORT MD</button>
                 </div>
                 <div class="archive-content" id="archiveContent">
                     <div class="archive-empty">NO ARCHIVED RECORDS</div>

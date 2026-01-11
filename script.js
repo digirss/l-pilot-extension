@@ -211,7 +211,10 @@ function renderMilestones() {
     today.setHours(0, 0, 0, 0);
 
     msContainer.innerHTML = milestones.map(ms => {
-        const msDate = new Date(ms.date);
+        // Parse date as local midnight explicitly
+        const parts = ms.date.split('-');
+        const msDate = new Date(parts[0], parts[1] - 1, parts[2]); // Y, M-1, D
+
         const diffTime = msDate - today;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 

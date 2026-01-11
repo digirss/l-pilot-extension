@@ -158,7 +158,7 @@ function loadHistory() {
     });
 }
 
-function saveHistory(missionText) {
+function saveHistory(missionText, status = 'secured') {
     const monthKey = getMonthKey();
     const todayKey = getTodayKey();
     const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -167,7 +167,7 @@ function saveHistory(missionText) {
         let allHistory = result[CONFIG.historyKey + monthKey] || {};
         if (!allHistory[todayKey]) allHistory[todayKey] = [];
 
-        allHistory[todayKey].unshift({ task: missionText, time: nowTime });
+        allHistory[todayKey].unshift({ task: missionText, time: nowTime, status: status });
 
         storage.set({
             [CONFIG.historyKey + monthKey]: allHistory
@@ -188,12 +188,19 @@ function renderHistory(list) {
         return;
     }
 
-    container.innerHTML = list.map(item => `
-        <div class="history-item">
-            <span class="history-task">${item.task}</span>
-            <span class="history-time">${item.time}</span>
-        </div>
-    `).join('');
+    container.innerHTML = list.map(item => {
+        const status = item.status || 'secured';
+        const icon = status === 'secured' ? '✓' : '✗';
+        return `
+            <div class="history-item" data-status="${status}">
+                <span class="history-task">
+                    <span class="history-status ${status}">${icon}</span>
+                    ${item.task}
+                </span>
+                <span class="history-time">${item.time}</span>
+            </div>
+        `;
+    }).join('');
 }
 
 function renderArchive(allHistory) {
@@ -207,10 +214,16 @@ function renderArchive(allHistory) {
 
     container.innerHTML = days.map(day => {
         const items = allHistory[day];
+        const secured = items.filter(i => i.status !== 'aborted').length;
+        const aborted = items.filter(i => i.status === 'aborted').length;
         return `
             <div class="archive-day">
-                <div class="archive-day-title">${day} (${items.length} MISSIONS)</div>
-                ${items.map(i => `<div class="archive-item">${i.task} @ ${i.time}</div>`).join('')}
+                <div class="archive-day-title">${day} (✓${secured} ✗${aborted})</div>
+                ${items.map(i => {
+            const status = i.status || 'secured';
+            const icon = status === 'secured' ? '✓' : '✗';
+            return `<div class="archive-item"><span class="history-status ${status}">${icon}</span> ${i.task} @ ${i.time}</div>`;
+        }).join('')}
             </div>
         `;
     }).join('');
@@ -234,11 +247,26 @@ function exportToMarkdown() {
 
         days.forEach(day => {
             const items = allHistory[day];
-            md += `## ${day} (${items.length} MISSIONS)\n\n`;
-            items.forEach(item => {
-                md += `- **${item.task}** @ ${item.time}\n`;
-            });
-            md += `\n`;
+            const secured = items.filter(i => i.status !== 'aborted');
+            const aborted = items.filter(i => i.status === 'aborted');
+
+            md += `## ${day}\n\n`;
+
+            if (secured.length > 0) {
+                md += `### SECURED (${secured.length})\n\n`;
+                secured.forEach(item => {
+                    md += `- ✓ **${item.task}** @ ${item.time}\n`;
+                });
+                md += `\n`;
+            }
+
+            if (aborted.length > 0) {
+                md += `### ABORTED (${aborted.length})\n\n`;
+                aborted.forEach(item => {
+                    md += `- ✗ **${item.task}** @ ${item.time}\n`;
+                });
+                md += `\n`;
+            }
         });
 
         md += `---\n\n`;
@@ -262,6 +290,7 @@ function renderMissions() {
         const input = document.getElementById(`input-${m.id}`);
         const statusIcons = card.querySelector('.status-icons');
         const confirmBtn = card.querySelector('.confirm-log-btn');
+        const abortBtn = card.querySelector('.abort-log-btn');
 
         // Update Text
         if (input.value !== m.text) {
@@ -277,8 +306,15 @@ function renderMissions() {
         // Show CONFIRM & LOG button when SECURED
         if (m.status === 'secured' && m.text.trim()) {
             confirmBtn.style.display = 'block';
+            abortBtn.style.display = 'none';
+        }
+        // Show ABORT & LOG button when ABORTED
+        else if (m.status === 'aborted' && m.text.trim()) {
+            confirmBtn.style.display = 'none';
+            abortBtn.style.display = 'block';
         } else {
             confirmBtn.style.display = 'none';
+            abortBtn.style.display = 'none';
         }
 
         // Launch to Focus Button (ENGAGING only)
@@ -322,8 +358,29 @@ function confirmAndLog(missionId) {
     const mission = missions[mIndex];
     if (!mission.text.trim()) return;
 
-    // Save to history
-    saveHistory(mission.text);
+    // Save to history as secured
+    saveHistory(mission.text, 'secured');
+
+    // Clear mission
+    missions[mIndex].text = '';
+    missions[mIndex].status = 'standby';
+
+    // Update UI
+    document.getElementById(`input-${missionId}`).value = '';
+    renderMissions();
+    saveData();
+}
+
+// --- Abort & Log Mission ---
+function abortAndLog(missionId) {
+    const mIndex = missions.findIndex(m => m.id === missionId);
+    if (mIndex === -1) return;
+
+    const mission = missions[mIndex];
+    if (!mission.text.trim()) return;
+
+    // Save to history as aborted
+    saveHistory(mission.text, 'aborted');
 
     // Clear mission
     missions[mIndex].text = '';
@@ -398,6 +455,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirmBtn = card.querySelector('.confirm-log-btn');
         confirmBtn.addEventListener('click', () => {
             confirmAndLog(id);
+        });
+
+        // ABORT & LOG Button
+        const abortBtn = card.querySelector('.abort-log-btn');
+        abortBtn.addEventListener('click', () => {
+            abortAndLog(id);
         });
     });
 

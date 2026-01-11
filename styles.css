@@ -624,6 +624,30 @@ body {
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
 }
 
+/* ABORT & LOG Button */
+.abort-log-btn {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.abort-log-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+}
+
 /* History Section */
 .history-section {
     margin-top: 30px;
@@ -646,9 +670,29 @@ body {
     padding: 10px 16px;
     background: rgba(255, 255, 255, 0.6);
     border: 1px solid var(--border-color);
-    border-left: 3px solid #10b981;
+    border-left: 3px solid var(--text-muted);
     font-family: var(--font-mono);
     font-size: 0.85rem;
+}
+
+.history-item[data-status="secured"] {
+    border-left-color: #10b981;
+}
+
+.history-item[data-status="aborted"] {
+    border-left-color: #ef4444;
+}
+
+.history-status {
+    margin-right: 8px;
+}
+
+.history-status.secured {
+    color: #10b981;
+}
+
+.history-status.aborted {
+    color: #ef4444;
 }
 
 .history-task {

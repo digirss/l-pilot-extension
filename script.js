@@ -280,12 +280,46 @@ function exportMilestonesToMD() {
     URL.revokeObjectURL(url);
 }
 
-// Global Storage Listener for Sync
+// Global Storage Listener for Sync // --- L-FOCUS Sync ---
 window.addEventListener('storage', (e) => {
-    if (e.key === ORBIT_MILEST_KEY) {
-        loadMilestones(); // Auto-reload when changed in L-ORBIT
+    if (e.key === 'orbit_milestones') {
+        const newMilestones = JSON.parse(e.newValue || '[]');
+        milestones = newMilestones; // Update local milestones array
+        renderMilestones(); // Re-render with updated milestones
+    }
+    // Focus Status Sync
+    if (e.key === 'l_focus_status') {
+        updateFocusStatus(e.newValue);
     }
 });
+
+// Check Focus Status on Load
+document.addEventListener('DOMContentLoaded', () => {
+    const currentFocusStatus = localStorage.getItem('l_focus_status');
+    if (currentFocusStatus) {
+        updateFocusStatus(currentFocusStatus);
+    }
+});
+
+function updateFocusStatus(status) {
+    const el = document.getElementById('focus-display');
+    if (!el) return;
+
+    // Convert to proper display text if needed, or just upper case
+    if (status === 'FOCUSED') {
+        el.textContent = 'ENGAGING';
+        el.style.color = '#22c55e'; // Green
+    } else if (status === 'PAUSED') {
+        el.textContent = 'PAUSED';
+        el.style.color = 'var(--primary)';
+    } else if (status === 'COMPLETE') {
+        el.textContent = 'SECURED';
+        el.style.color = '#22c55e';
+    } else {
+        el.textContent = 'STANDBY';
+        el.style.color = 'var(--text-main)';
+    }
+}
 
 function saveData() {
     storage.set({

@@ -21,11 +21,12 @@ body {
         linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
     background-size: 40px 40px;
     color: var(--text-main);
-    overflow: hidden;
-    height: 100vh;
+    overflow-y: auto;
+    /* Allow vertical scroll */
+    min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
+    /* Removed align-items: center to let it flow naturally if tall */
 }
 
 /* Startup Overlay */
@@ -74,13 +75,15 @@ body {
     width: 100%;
     max-width: 1200px;
     /* Adjusted to 1200px */
-    min-height: 800px;
-    /* Increased from 500px */
+    min-height: 100vh;
+    /* Ensure full height */
+    box-sizing: border-box;
+    /* Include padding in height */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 60px;
-    /* Increased padding */
+    padding: 40px 60px;
+    /* Reduced top padding slightly */
     opacity: 0;
     transform: scale(0.98);
     transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);

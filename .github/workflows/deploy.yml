@@ -1,0 +1,36 @@
+name: Build and Release L-PILOT
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*'
+      - '!.github/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create ZIP archive
+        run: |
+          # 打包根目錄下的所有擴充功能檔案，排除 git 和 workflow 本身
+          zip -r L-PILOT.zip ./* -x ".git/*" ".github/*" "*.DS_Store*" ".gitignore" "README*" "preview.png"
+
+      - name: Create or Update Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "L-PILOT.zip"
+          tag: "latest"
+          name: "Latest Release"
+          body: "這是 L-PILOT 擴充功能的最新版本。下載下方的 ZIP 檔並按照 README 說明載入即可使用。"
+          allowUpdates: true
+          replacesArtifacts: true
+          makeLatest: true
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,10 @@
 # L-PILOT | L.EGION 指揮中心
 
+> [!TIP]
+> ### 🚀 快速下載測試
+> **[👉 點此下載最新版本 ZIP 檔 👈](https://github.com/digirss/l-pilot-extension/releases/latest/download/L-PILOT.zip)**  
+> (下載後解壓縮，即可按照下方說明快速安裝)
+
 > **你的每日任務中樞。** 一款 Chrome 擴充功能，將你的生產力工具整合為一個強大的儀表板。
 
 ![L-PILOT 截圖](preview.png)
